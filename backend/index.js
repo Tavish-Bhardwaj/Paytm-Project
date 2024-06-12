@@ -1,6 +1,9 @@
 const express = require("express");
 
+const mainRouter = require("./routes/index");
+const userRouter = require("./routes/user");
+const app = express();
 
-// this is a comment.
-// a new check for the git
-//one more check.
+app.use("/api/vi",mainRouter);
+app.use("/api/vi/user",userRouter);
+app.use("/api/vi/account",accountRouter);
