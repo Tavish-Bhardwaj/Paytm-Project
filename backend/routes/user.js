@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
-const { User } = require("../db");
+const { User, Account } = require("../db");
 const JWT_SECRET = require("../config");
 
 const signupSchema = zod.object({
@@ -26,6 +26,9 @@ router.post("/signup", async (req, res) => {
   }
 
   const dbuser = await User.create(body);
+
+  await Account.create({ userId, balance: 1 + Math.random() * 10000 });
+
   const token = jwt.sign(
     {
       userId: dbuser._id,
@@ -94,20 +97,16 @@ router.put("/update", authMiddleware, async (req, res) => {
 router.get("/bulk", async (req, res) => {
   const filter = req.query.filter || "";
   const users = await User.find({
-    $or: [
-      { firstName: { $regex: filter  } },
-      { lastName: { $regex: filter} },
-    ],
+    $or: [{ firstName: { $regex: filter } }, { lastName: { $regex: filter } }],
   });
 
-
   res.json({
-    user: users.map(user => ({
-        username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        _id: user._id
-    }))
-});
+    user: users.map((user) => ({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      _id: user._id,
+    })),
+  });
 });
 module.exports = router;
