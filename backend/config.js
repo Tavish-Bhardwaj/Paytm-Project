@@ -1,2 +1,2 @@
-const JWT_SECRET= tavish;
+const JWT_SECRET= "tavish";
 module.exports= JWT_SECRET;
