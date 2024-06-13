@@ -6,39 +6,48 @@ const { User, Account } = require("../db");
 const JWT_SECRET = require("../config");
 
 const signupSchema = zod.object({
-  username: zod.string(),
+  userName: zod.string(),
   password: zod.string(),
   firstName: zod.string(),
   lastName: zod.string(),
 });
 router.post("/signup", async (req, res) => {
-  const body = req.body;
-  const { success } = signupSchema.safeParse(body);
+ 
+  const { success } = signupSchema.safeParse(req.body);
   if (!success) {
-    res.status(400).json({ error: "Email already taken / Incorrect inputs" });
-    return;
+    return res.status(400).json({ message: "Email already taken / Incorrect inputs" });
+    
   }
 
-  const user = User.findOne({ username: body.username });
-  if (user._id) {
-    res.status(400).json({ error: "Email already taken / Incorrect inputs" });
-    return;
-  }
+  const existingUser = await User.findOne({ userName: req.body.userName })
+  if (existingUser) {
+    return res.status(411).json({message: "Email already taken / Incorrect inputs" });
+    
+    }
+    else{
 
-  const dbuser = await User.create(body);
+      
+      const user = await User.create({
+        userName: req.body.userName,
+        password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
 
+      });
+    const userId= user._id;
+  
   await Account.create({ userId, balance: 1 + Math.random() * 10000 });
-
-  const token = jwt.sign(
-    {
-      userId: dbuser._id,
-    },
-    JWT_SECRET
-  );
-  res.json({
-    message: "User Created Successfully",
-    token: token,
-  });
+const token = jwt.sign(
+  {
+    userId: user._id,
+  },
+JWT_SECRET
+);
+res.json({
+  message: "User Created Successfully",
+token: token,
+});
+}
 });
 
 const signinSchema = zod.object({
@@ -110,3 +119,6 @@ router.get("/bulk", async (req, res) => {
   });
 });
 module.exports = router;
+
+
+
